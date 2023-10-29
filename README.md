@@ -53,16 +53,25 @@ Se usa una gramatica para detectar las operaciones,
 #### Gramatica usada
 
 expression: term addop expression | term;
+
 term: factor mulop term | factor;
+
 factor: power powop factor | power;
+
 power: '(' expression ')' | negexp | NUMBER | neg NUMBER | FUNCTION '(' expression ')' | neg FUNCTION '(' expression ')';
+
 addop: '+' | '-';
+
 mulop: '*' | '/';
+
 powop: '^';
+
 neg: '-' ;
+
 negexp: neg '(' expression ')';
 
 FUNCTION: 'sin' | 'cos' | 'tan' | 'sqrt' | 'pow';
+
 NUMBER: DIGIT+ ('.' DIGIT+)?;
 
 DIGIT: [0-9];

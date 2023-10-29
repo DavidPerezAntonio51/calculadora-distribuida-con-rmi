@@ -23,19 +23,21 @@ public class RequestWorker implements Runnable {
     public void run() {
         Optional<Replica<ServidorReplica>> server = serverRegistry.getServer();
         try {
-            ObjectInputStream input = new ObjectInputStream(clienteRequest.getInputStream());
             ObjectOutputStream output = new ObjectOutputStream(clienteRequest.getOutputStream());
+            ObjectInputStream input = new ObjectInputStream(clienteRequest.getInputStream());
+            String operacion = input.readUTF();
             if (!server.isPresent()) {
                 output.writeObject(new Respuesta("No hay servidores disponibles para procesar la solicitud."));
                 System.out.println("No hay servidores disponibles para procesar la solicitud.");
+                return;
             }
             Replica<ServidorReplica> replica = server.get();
             System.out.println("Enviando solicitud al servidor con puerto: " + replica.getPort());
             ServidorReplica servidorReplica = replica.getReplica();
-            String operacion = input.readUTF();
             Respuesta calcular = servidorReplica.calcular(operacion);
             output.writeObject(calcular);
         } catch (IOException e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException(e);
         } finally {
             try {

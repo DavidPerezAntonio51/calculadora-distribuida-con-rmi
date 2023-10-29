@@ -22,7 +22,7 @@ parentesis_derecho = [)]
 %eofval}
 
 %%
-('-')?{digit}+('.'{digit}+)? {return new Token(TokenType.NUMERO,yytext());}
+{digit}+('.'{digit}+)? {return new Token(TokenType.NUMERO,yytext());}
 {suma} { return new Token(TokenType.SUMA,yytext()); }
 {resta}     { return new Token(TokenType.RESTA,yytext()); }
 {multiplicacion}     { return new Token(TokenType.MULTIPLICACION,yytext()); }

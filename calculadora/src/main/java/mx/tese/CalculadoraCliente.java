@@ -1,79 +1,80 @@
 package mx.tese;
 
-import mx.tese.CalculadoraCore.Lexico.*;
-import mx.tese.CalculadoraCore.Operacion;
+import mdlaf.MaterialLookAndFeel;
+import mdlaf.themes.MaterialLiteTheme;
+import mx.tese.Cliente.Interfaz;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
-public class CalculadoraCliente extends JFrame {
-    private JTextField pantalla; // Pantalla de la calculadora
-    private double resultado; // Almacena el resultado
-    private String operador; // Almacena el operador actual
-    private boolean nuevoNumero; // Indica si se debe iniciar un nuevo número
+public class CalculadoraCliente{
+    public static void main(String[] args, Scanner scanner) {
+        String host = obtenerDireccionIPValida(scanner);
+        int puerto = obtenerPuertoSocket(scanner);
+        try {
+            UIManager.setLookAndFeel(new MaterialLookAndFeel());
+            if (UIManager.getLookAndFeel() instanceof MaterialLookAndFeel) {
+                MaterialLookAndFeel.changeTheme(new MaterialLiteTheme());
+                SwingUtilities.invokeLater(() -> {
+                    Interfaz calculadora = new Interfaz(host, puerto);
+                    calculadora.setVisible(true);
+                    calculadora.setLocationRelativeTo(null); // Centra la ventana en la pantalla
+                    calculadora.requestFocus(); // Da el foco a la ventana
+                });
+            }
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
+    public static int obtenerPuertoSocket(Scanner scanner) {
 
-    // Constructor
-    public CalculadoraCliente() {
-        // Inicializa la ventana de la calculadora
-        setTitle("Calculadora");
-        setSize(300, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        System.out.print("Introduce el puerto del servidor o presiona Enter para usar el puerto por defecto (8080): ");
+        String puertoStr = scanner.nextLine().trim();
 
-        // Inicializa la pantalla
-        pantalla = new JTextField();
-        pantalla.setEditable(false);
-        //This = Jframe
-        this.add(pantalla, BorderLayout.NORTH);
-
-        // Crea un panel para los botones
-        JPanel panelBotones = new JPanel();
-        panelBotones.setLayout(new GridLayout(4, 4));
-
-        // Array de etiquetas para los botones
-        String[] botones = {"7", "8", "9", "+", "4", "5", "6", "-", "1", "2", "3", "*", "C", "0", "=", "/"};
-
-        // Agrega los botones al panel
-        for (String boton : botones) {
-            JButton btn = new JButton(boton);
-            panelBotones.add(btn);
+        if (puertoStr.isEmpty()) {
+            return 8080; // Usar el puerto por defecto (1099)
         }
 
-        this.add(panelBotones, BorderLayout.CENTER);
+        try {
+            int puerto = Integer.parseInt(puertoStr);
+            if (puerto >= 0 && puerto <= 65535) {
+                return puerto;
+            } else {
+                System.out.println("El puerto debe estar en el rango de 1024 a 65535.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Por favor, ingrese un número válido para el puerto.");
+        }
 
-        // Inicializa variables
-        resultado = 0;
-        operador = "";
-        nuevoNumero = true;
+        return obtenerPuertoSocket(scanner); // Llamada recursiva si la entrada no es válida
+    }
+    public static String obtenerDireccionIPValida(Scanner scanner) {
+
+        while (true) {
+            System.out.print("Introduce la dirección del ServiceRegistry o presiona Enter para usar la dirección por defecto (localhost): ");
+            String direccionIP = scanner.nextLine().trim();
+
+            if (direccionIP.isEmpty()) {
+                return "localhost"; // Usar la dirección por defecto (localhost)
+            }
+
+            // Validar que la dirección IP sea válida
+            if (esDireccionIPValida(direccionIP)) {
+                return direccionIP;
+            } else {
+                System.out.println("Dirección IP no válida. Por favor, ingrese una dirección IP válida.");
+            }
+        }
     }
 
-    public static void main(String[] args, Scanner scanner) {
-        String op = "(6+8+9)*(6-2+cos(2/3))+(2^2)";
-        AnalizadorLexico analizadorLexico = new AnalizadorLexico(new StringReader(op));
-        java.util.List<Token> tokens = new ArrayList<>();
-        Token token;
-        try {
-            while ((token = analizadorLexico.yylex()) != null && token.getType() != TokenType.EOF) {
-                System.out.println(token);
-                tokens.add(token);
-            }
-        } catch (IOException e) {
-            System.err.println("Error al analizar la expresión: " + e.getMessage());
-        }
-        AnalizadorSintactico analizadorSintactico = new AnalizadorSintactico(tokens);
-        try {
-            Operacion operacion = analizadorSintactico.parseExpression();
-            System.out.println(operacion.ejecutar());
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-        //SwingUtilities.invokeLater(() -> {
-        //  CalculadoraCliente calculadora = new CalculadoraCliente();
-        //calculadora.setVisible(true);
-        //});
+    public static boolean esDireccionIPValida(String direccionIP) {
+        // Utilizar una expresión regular para validar la dirección IP
+        String patronIP = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+
+        return Pattern.matches(patronIP, direccionIP);
     }
 }

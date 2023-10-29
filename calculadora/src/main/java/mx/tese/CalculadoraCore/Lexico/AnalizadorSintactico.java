@@ -75,7 +75,12 @@ public class AnalizadorSintactico {
             return result;
         } else if (checkToken(TokenType.NUMERO)) {
             return new Numero(Double.parseDouble(nextToken().getLexema()));
-        } else if (checkToken(TokenType.SEN) || checkToken(TokenType.COS) || checkToken(TokenType.TAN)) {
+        } else if (
+                checkToken(TokenType.SEN)
+                        || checkToken(TokenType.COS)
+                        || checkToken(TokenType.TAN)
+                        || checkToken(TokenType.RAIZ)
+        ) {
             Token function = nextToken();
             matchToken(TokenType.PARENTESIS_IZQUIERDO);
             Operacion argument = parseExpression();

@@ -68,43 +68,39 @@ public class AnalizadorSintactico {
     }
 
     private Operacion parsePower() throws ParseException {
-        if (checkToken(TokenType.PARENTESIS_IZQUIERDO)) {
+        if (checkToken(TokenType.RESTA)) {
+            matchToken(TokenType.RESTA);
+            if (checkToken(TokenType.PARENTESIS_IZQUIERDO)) {
+                matchToken(TokenType.PARENTESIS_IZQUIERDO);
+                Operacion result = parseExpression();
+                matchToken(TokenType.PARENTESIS_DERECHO);
+                return new ExpresionNegativa(result);
+            } else if (checkToken(TokenType.NUMERO)) {
+                return new NumeroNegativo(Double.parseDouble(nextToken().getLexema()));
+            } else if (checkToken(TokenType.SEN) || checkToken(TokenType.COS) || checkToken(TokenType.TAN) || checkToken(TokenType.RAIZ)) {
+                Token function = nextToken();
+                matchToken(TokenType.PARENTESIS_IZQUIERDO);
+                Operacion argument = parseExpression();
+                matchToken(TokenType.PARENTESIS_DERECHO);
+                return new FuncionNegativa(function.getType(), argument);
+            }
+        } else if (checkToken(TokenType.PARENTESIS_IZQUIERDO)) {
             matchToken(TokenType.PARENTESIS_IZQUIERDO);
             Operacion result = parseExpression();
             matchToken(TokenType.PARENTESIS_DERECHO);
             return result;
         } else if (checkToken(TokenType.NUMERO)) {
             return new Numero(Double.parseDouble(nextToken().getLexema()));
-        } else if (
-                checkToken(TokenType.SEN)
-                        || checkToken(TokenType.COS)
-                        || checkToken(TokenType.TAN)
-                        || checkToken(TokenType.RAIZ)
-        ) {
+        } else if (checkToken(TokenType.SEN) || checkToken(TokenType.COS) || checkToken(TokenType.TAN) || checkToken(TokenType.RAIZ)) {
             Token function = nextToken();
             matchToken(TokenType.PARENTESIS_IZQUIERDO);
             Operacion argument = parseExpression();
             matchToken(TokenType.PARENTESIS_DERECHO);
-            switch (function.getType()) {
-                case SEN:
-                    return new Seno(argument);
-                case COS:
-                    return new Coseno(argument);
-                case TAN:
-                    return new Tangente(argument);
-                case RAIZ:
-                    return new RaizCuadrada(argument);
-                // Agrega más funciones aquí
-                default:
-                    throw new ParseException(
-                            "Se esperaba alguno de los siguientes [(,NUMERO,Funcion] pero se encontro: " +
-                                    function.getLexema());
-            }
+            return new Funcion(function.getType(), argument);
         } else {
-            throw new ParseException(
-                    "Se esperaba alguno de los siguientes [(,NUMERO,Funcion] pero se encontro: " +
-                            currentToken().getLexema());
+            throw new ParseException("Se esperaba alguno de los siguientes [(,NUMERO,Funcion] pero se encontro: " + currentToken().getLexema());
         }
+        throw new ParseException("Se esperaba alguno de los siguientes [^,(,NUMERO,Funcion] pero se encontro: " + currentToken().getLexema());
     }
 
     public Token nextToken() {
